@@ -13,10 +13,15 @@ module.exports = async ({ req, res, log, error }) => {
     const DATABASE_ID = process.env.DATABASE_ID;
     const USERS_COLLECTION_ID = process.env.USERS_COLLECTION_ID;
 
+    log(`Database ID: ${DATABASE_ID}`);
+    log(`Users Collection ID: ${USERS_COLLECTION_ID}`);
+
     const result = await databases.listDocuments(
       DATABASE_ID,
       USERS_COLLECTION_ID
     );
+
+    log(`Found ${result.documents.length} users`);
 
     const now = new Date();
 
@@ -30,7 +35,6 @@ module.exports = async ({ req, res, log, error }) => {
       const approved =
         user.approved ?? false;
 
-      // Appwrite system creation date
       const createdAt =
         new Date(user.$createdAt);
 
@@ -39,6 +43,10 @@ module.exports = async ({ req, res, log, error }) => {
           (now - createdAt) /
           (1000 * 60 * 60 * 24)
         );
+
+      log(
+        `User: ${user.name ?? 'Unknown'} | Paid: ${paidMember} | Approved: ${approved} | Age: ${ageInDays} days`
+      );
 
       if (
         paidMember === false &&
@@ -55,10 +63,12 @@ module.exports = async ({ req, res, log, error }) => {
         deletedCount++;
 
         log(
-          `Deleted user: ${user.name ?? 'Unknown'} (${user.$id})`
+          `Deleted user: ${user.name ?? 'Unknown'}`
         );
       }
     }
+
+    log(`Deleted ${deletedCount} users`);
 
     return res.json({
       success: true,
